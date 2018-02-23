@@ -1,0 +1,177 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+    "Description"              : "AWS CloudFormation Sample Template vpc_single_instance_in_subnet.template: Sample template showing how to create a VPC and add an EC2 instance with an Elastic IP address and a security group. **WARNING** This template creates an Amazon EC2 instance. You will be billed for the AWS resources used if you create a stack from this template.",
+    "Parameters"               : {
+        "Ec2Type" : {
+            "Type" : "String"
+        },
+        "InstanceType" : {
+            "Description" : "WebServer EC2 instance type",
+            "Type"        : "String",
+            "Default"     : "m1.small",
+            "AllowedValues" : [
+                "t1.micro",
+                "m1.small",
+                "m1.medium",
+                "m1.large",
+                "m1.xlarge",
+                "m2.xlarge",
+                "m2.2xlarge",
+                "m2.4xlarge",
+                "m3.xlarge",
+                "m3.2xlarge",
+                "c1.medium",
+                "c1.xlarge",
+                "cc1.4xlarge",
+                "cc2.8xlarge",
+                "cg1.4xlarge"
+            ],
+            "ConstraintDescription" : "must be a valid EC2 instance type."
+        },
+        "VpcID"        : {
+            "Type" : "AWS::EC2::VPC::Id"
+        },
+        "SubnetId"     : {
+            "Type" : "AWS::EC2::Subnet::Id"
+        },
+        "KeyName"      : {
+            "Description" : "Name of an existing EC2 KeyPair to enable SSH access to the instance",
+            "Type"        : "AWS::EC2::KeyPair::KeyName"
+        }
+    },
+    "Mappings"                 : {
+        "RegionMap" : {
+            "us-east-1" : {
+                "64" : "ami-81a768e8"
+            },
+            "us-west-1" : {
+                "64" : "ami-b18ed2f4"
+            },
+            "us-west-2" : {
+                "64" : "ami-feff72ce"
+            },
+            "eu-west-1" : {
+                "64" : "ami-998bb9ed"
+            },
+            "sa-east-1" : {
+                "64" : "ami-a239e6bf"
+            },
+            "ap-southeast-1" : {
+                "64" : "ami-5e5a200c"
+            },
+            "ap-southeast-2" : {
+                "64" : "ami-43851279"
+            },
+            "ap-northeast-1" : {
+                "64" : "ami-7671c577"
+            }
+        }
+    },
+    "Resources"                : {
+        "EXternalSecurityGroup" : {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+                "VpcId" : {
+                    "Ref" : "VpcID"
+                },
+                "GroupDescription" : "Enable SSH access via port 22",
+                "SecurityGroupIngress" : [
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort"   : "22",
+                        "ToPort"     : "22",
+                        "CidrIp"     : "0.0.0.0/0"
+                    },
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort"   : "80",
+                        "ToPort"     : "80",
+                        "CidrIp"     : "0.0.0.0/0"
+                    }
+                ]
+            }
+        },
+        "MyInstance"           : {
+            "Type" : "AWS::EC2::Instance",
+            "Metadata" : {
+                "AWS::CloudFormation::Init" : {
+                    "config" : {
+                        "files" : {
+                            "/tmp/test.txt" : {
+                                "content" : "Hello world!",
+                                "mode"    : "000755",
+                                "owner"   : "root",
+                                "group"   : "root"
+                            }
+                        }
+                        
+                    }
+                }
+            },
+            "Properties": {
+                "ImageId": "ami-942dd1f6",
+                "InstanceType": "t2.micro",
+                "KeyName" : { "Ref" : "KeyName" },
+                "SecurityGroupIds" : [{ "Ref" : "EXternalSecurityGroup" }],
+                "Tags" : [
+					{
+						"Key" : "Name",
+                        "Value":{"Fn::Join" : [ "-", ["salt" ,{ "Ref" : "Ec2Type" }] ]}
+					}
+				],
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "#!/bin/bash -x\n",
+                                "# Install the files and packages from the metadata\n",
+								"yum install -y curl\n",
+								"curl -L https://bootstrap.saltstack.com -o install-salt.sh\n ",
+								"sh install-salt.sh -M -A 127.0.0.01\n",
+                                "/opt/aws/bin/cfn-init -v ",
+                                "         --stack ",
+                                {
+                                    "Ref": "AWS::StackName"
+                                },
+                                "         --resource MyInstance ",
+                                "         --region ",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                "\n",
+                                "# Signal the status from cfn-init\n",
+                                "/opt/aws/bin/cfn-signal -e $? ",
+                                "         --stack ",
+                                {
+                                    "Ref": "AWS::StackName"
+                                },
+                                "         --resource MyInstance ",
+                                "         --region ",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                "\n"
+                            ]
+                        ]
+                    }
+                }
+            },
+            "CreationPolicy": {
+                "ResourceSignal": {
+                    "Timeout": "PT5M"
+                }
+            }
+        }
+    },
+    "Outputs"                  : {
+        "IP" : {
+            "Value" : {
+                "Fn::GetAtt" : [
+                    "MyInstance",
+                    "PublicIp"
+                ]
+            }
+        }
+    }
+}

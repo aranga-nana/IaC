@@ -1,0 +1,57 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+    "Description"              : "Reusable-subnet-layer",
+    "Parameters"               : {
+        "VpcId" : {
+            "Type" : "AWS::EC2::VPC::Id"
+        },
+        "CdirBlock" : {
+            "Type" : "String"
+        },
+        "AvailabilityZone" : {
+            "Type" : "AWS::EC2::AvailabilityZone::Name"
+        }
+ 
+    },
+    "Resources"                : {
+        "Subnet" : {
+            "Type" : "AWS::EC2::Subnet",
+            "Properties" : {
+                "VpcId" : {
+                    "Ref" : "VpcId"
+                },
+                "CidrBlock" : {
+                    "Ref" : "CdirBlock"
+                },
+                "AvailabilityZone" : {
+                    "Ref" : "AvailabilityZone"
+                },
+                "Tags"             : [
+                    {
+                        "Key" : "Name",
+                        "Value" : {
+                            "Fn::Join" : [
+                                "-",
+                                [
+                                    {
+                                        "Ref" : "VpcId"
+                                    },
+                                    {
+                                        "Ref" : "AvailabilityZone"
+                                    }
+                                ]
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "Outputs"                  : {
+        "SubnetId" : {
+            "Value" : {
+                "Ref" : "Subnet"
+            }
+        }
+    }
+}
