@@ -1,6 +1,6 @@
 {
     "AWSTemplateFormatVersion" : "2010-09-09",
-    "Description"              : "AWS CloudFormation Sample Template vpc_single_instance_in_subnet.template: Sample template showing how to create a VPC and add an EC2 instance with an Elastic IP address and a security group. **WARNING** This template creates an Amazon EC2 instance. You will be billed for the AWS resources used if you create a stack from this template.",
+    "Description"              : "",
     "Parameters"               : {
         "Ec2Type" : {
             "Type" : "String"
@@ -42,7 +42,10 @@
     "Mappings"                 : {
         "RegionMap" : {
             "us-east-1" : {
-                "64" : "ami-81a768e8"
+                "64" : "ami-97785bed"
+            },
+            "us-east-2" : {
+                "64" : "ami-f63b1193"
             },
             "us-west-1" : {
                 "64" : "ami-b18ed2f4"
@@ -91,12 +94,18 @@
                 ]
             }
         },
-        "MyInstance"           : {
+        "SaltMaster"            : {
             "Type" : "AWS::EC2::Instance",
             "Metadata" : {
                 "AWS::CloudFormation::Init" : {
                     "config" : {
-                        "files" : {
+                        "Packages" : {
+                            "yum" : {
+                                "htop" : [
+                                ]
+                            }
+                        },
+                        "files"    : {
                             "/tmp/test.txt" : {
                                 "content" : "Hello world!",
                                 "mode"    : "000755",
@@ -104,52 +113,70 @@
                                 "group"   : "root"
                             }
                         }
-                        
                     }
                 }
             },
-            "Properties": {
-                "ImageId": "ami-942dd1f6",
-                "InstanceType": "t2.micro",
-                "KeyName" : { "Ref" : "KeyName" },
-                "SecurityGroupIds" : [{ "Ref" : "EXternalSecurityGroup" }],
-                "Tags" : [
-					{
-						"Key" : "Name",
-                        "Value":{"Fn::Join" : [ "-", ["salt" ,{ "Ref" : "Ec2Type" }] ]}
-					}
-				],
-                "UserData": {
-                    "Fn::Base64": {
-                        "Fn::Join": [
+            "Properties" : {
+                "ImageId" : "ami-942dd1f6",
+                "InstanceType" : "t2.micro",
+                "KeyName"      : {
+                    "Ref" : "KeyName"
+                },
+                "SecurityGroupIds" : [
+                    {
+                        "Ref" : "EXternalSecurityGroup"
+                    }
+                ],
+                "Tags"             : [
+                    {
+                        "Key" : "Name",
+                        "Value" : {
+                            "Fn::Join" : [
+                                "-",
+                                [
+                                    "salt",
+                                    {
+                                        "Ref" : "Ec2Type"
+                                    }
+                                ]
+                            ]
+                        }
+                    }
+                ],
+                "UserData"         : {
+                    "Fn::Base64" : {
+                        "Fn::Join" : [
                             "",
                             [
                                 "#!/bin/bash -x\n",
                                 "# Install the files and packages from the metadata\n",
-								"yum install -y curl\n",
-								"curl -L https://bootstrap.saltstack.com -o install-salt.sh\n ",
-								"sh install-salt.sh -M -A 127.0.0.01\n",
+								"INSTANCE_ID=`curl http://169.254.169.254/2014-11-05/meta-data/instance-id -s`\n",
+								"echo \"hello\" > /etc/profile.d/bootstrap_env.sh\n", 
+                                "yum update -y \n",
+                                "yum install -y curl\n",
+                                "curl -L https://bootstrap.saltstack.com -o install-salt.sh\n ",
+                                "sh install-salt.sh -M -A 127.0.0.01\n",
                                 "/opt/aws/bin/cfn-init -v ",
                                 "         --stack ",
                                 {
-                                    "Ref": "AWS::StackName"
+                                    "Ref" : "AWS::StackName"
                                 },
-                                "         --resource MyInstance ",
+                                "         --resource SaltMaster ",
                                 "         --region ",
                                 {
-                                    "Ref": "AWS::Region"
+                                    "Ref" : "AWS::Region"
                                 },
                                 "\n",
                                 "# Signal the status from cfn-init\n",
                                 "/opt/aws/bin/cfn-signal -e $? ",
                                 "         --stack ",
                                 {
-                                    "Ref": "AWS::StackName"
+                                    "Ref" : "AWS::StackName"
                                 },
-                                "         --resource MyInstance ",
+                                "         --resource SaltMaster ",
                                 "         --region ",
                                 {
-                                    "Ref": "AWS::Region"
+                                    "Ref" : "AWS::Region"
                                 },
                                 "\n"
                             ]
@@ -157,9 +184,9 @@
                     }
                 }
             },
-            "CreationPolicy": {
-                "ResourceSignal": {
-                    "Timeout": "PT5M"
+            "CreationPolicy" : {
+                "ResourceSignal" : {
+                    "Timeout" : "PT5M"
                 }
             }
         }
@@ -168,7 +195,7 @@
         "IP" : {
             "Value" : {
                 "Fn::GetAtt" : [
-                    "MyInstance",
+                    "SaltMaster",
                     "PublicIp"
                 ]
             }

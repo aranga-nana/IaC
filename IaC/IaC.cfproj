@@ -17,9 +17,14 @@
     <Compile Include="subnet.template">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="web-layer.template">
+    <Compile Include="salt-master.template">
       <SubType>Code</SubType>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="test.json">
+      <SubType>Content</SubType>
+    </Content>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
   </PropertyGroup>
