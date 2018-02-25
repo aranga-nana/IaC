@@ -98,7 +98,6 @@
 
 					"CidrIp" : "172.31.0.0/16"
 					}
-
                 ]
             }
         },
@@ -159,12 +158,11 @@
                                 "#!/bin/bash -x\n",
                                 "# Install the files and packages from the metadata\n",
 								"INSTANCE_ID=`curl http://169.254.169.254/2014-11-05/meta-data/instance-id -s`\n",
-								"echo \"PS1='\\u@master-$INSTANCE_ID \\w]$'\" > /etc/profile.d/bootstrap_env.sh\n", 
-								"echo \"INSTANCE_ID=$INSTANCE_ID\" >> /etc/profile.d/bootstrap_env.sh\n", 
+								"echo \"hello\" > /etc/profile.d/bootstrap_env.sh\n", 
                                 "yum update -y \n",
                                 "yum install -y curl\n",
                                 "curl -L https://bootstrap.saltstack.com -o install-salt.sh\n ",
-                                "sh install-salt.sh -M -A 127.0.0.01\n -i master \n",
+                                "#sh install-salt.sh -M -A 127.0.0.01\n",
                                 "/opt/aws/bin/cfn-init -v ",
                                 "         --stack ",
                                 {
@@ -201,27 +199,11 @@
         }
     },
     "Outputs"                  : {
-        "PublicIP" : {
+        "IP" : {
             "Value" : {
                 "Fn::GetAtt" : [
                     "SaltMaster",
                     "PublicIp"
-                ]
-            }
-        },
-        "PrivateIP" : {
-            "Value" : {
-                "Fn::GetAtt" : [
-                    "SaltMaster",
-                    "PrivateIp"
-                ]
-            }
-        },
-        "PrivateDNS" : {
-            "Value" : {
-                "Fn::GetAtt" : [
-                    "SaltMaster",
-                   "PrivateDnsName"
                 ]
             }
         }

@@ -5,6 +5,11 @@ VisualStudioVersion = 15.0.26730.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{22325025-CDA3-4736-83CB-2D32D2FCC215}") = "IaC", "IaC.cfproj", "{99999999-9999-9999-9999-999999999999}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BB145DB8-4D0D-4B47-859E-0B45A09EC306}"
+	ProjectSection(SolutionItems) = preProject
+		test.json = test.json
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
