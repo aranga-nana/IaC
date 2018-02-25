@@ -91,14 +91,12 @@
                         "ToPort"     : "80",
                         "CidrIp"     : "0.0.0.0/0"
                     },
-					{
-                    "IpProtocol" : "tcp",
-                    "FromPort" : "0",
-                    "ToPort" : "65535",
-
-					"CidrIp" : "172.31.0.0/16"
-					}
-
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort"   : "0",
+                        "ToPort"     : "65535",
+                        "CidrIp"     : "172.31.0.0/16"
+                    }
                 ]
             }
         },
@@ -114,8 +112,8 @@
                             }
                         },
                         "files"    : {
-                            "/tmp/test.txt" : {
-                                "content" : "Hello world!",
+                            "/home/ec2-user/install-done.txt" : {
+                                "content" : "$INSTANCE_ID\nHello",
                                 "mode"    : "000755",
                                 "owner"   : "root",
                                 "group"   : "root"
@@ -130,6 +128,7 @@
                 "KeyName"      : {
                     "Ref" : "KeyName"
                 },
+                "IamInstanceProfile" : { "Ref" : "Ec2InstanceProfile" },
                 "SecurityGroupIds" : [
                     {
                         "Ref" : "EXternalSecurityGroup"
@@ -158,13 +157,14 @@
                             [
                                 "#!/bin/bash -x\n",
                                 "# Install the files and packages from the metadata\n",
-								"INSTANCE_ID=`curl http://169.254.169.254/2014-11-05/meta-data/instance-id -s`\n",
-								"echo \"PS1='\\u@master-$INSTANCE_ID \\w]$'\" > /etc/profile.d/bootstrap_env.sh\n", 
-								"echo \"INSTANCE_ID=$INSTANCE_ID\" >> /etc/profile.d/bootstrap_env.sh\n", 
+                                "INSTANCE_ID=`curl http://169.254.169.254/2014-11-05/meta-data/instance-id -s`\n",
+                                "echo \"PS1='\\u@master-$INSTANCE_ID \\w]$'\" > /etc/profile.d/bootstrap_env.sh\n",
+                                "echo \"INSTANCE_ID=$INSTANCE_ID\" >> /etc/profile.d/bootstrap_env.sh\n",
                                 "yum update -y \n",
                                 "yum install -y curl\n",
+								"aws ec2 create-tags --resources $INSTANCE_ID --tags Key=\"Name\",Value=\"master-$INSTANCE_ID\" --region=ap-southeast-2\n",
                                 "curl -L https://bootstrap.saltstack.com -o install-salt.sh\n ",
-                                "sh install-salt.sh -M -A 127.0.0.01\n -i master \n",
+                                "sh install-salt.sh -M -A 127.0.0.01\n -i master-$INSTANCE_ID \n",
                                 "/opt/aws/bin/cfn-init -v ",
                                 "         --stack ",
                                 {
@@ -198,6 +198,56 @@
                     "Timeout" : "PT5M"
                 }
             }
+        },
+        "Ec2InstanceProfile"    : {
+            "Type" : "AWS::IAM::InstanceProfile",
+		
+            "Properties" : {
+                "Path" : "/",
+                "Roles" : [
+                    {
+                        "Ref" : "Ec2InstanceProfileRole"
+                    }
+                ]
+            }
+        },
+        "Ec2InstanceProfileRole" : {
+            "Type" : "AWS::IAM::Role",
+            
+            "Properties" : {
+                "AssumeRolePolicyDocument" : {
+                    "Statement" : [
+                        {
+			                "Effect" : "Allow",
+                            "Principal" : {
+                                "Service" : [
+                                    "ec2.amazonaws.com"
+                                ]
+                            },
+                            "Action"    : [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path"                     : "/",
+                "Policies"                 : [
+                    {
+                        "PolicyName": "ec2-access-policy",
+                        "PolicyDocument" : {
+                            "Statement" : [
+                                {
+                                    "Effect" : "Allow",
+                                    "Action" : [
+                                        "ec2:*"
+                                    ],
+                                    "Resource" : "*"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
         }
     },
     "Outputs"                  : {
@@ -221,7 +271,7 @@
             "Value" : {
                 "Fn::GetAtt" : [
                     "SaltMaster",
-                   "PrivateDnsName"
+                    "PrivateDnsName"
                 ]
             }
         }
