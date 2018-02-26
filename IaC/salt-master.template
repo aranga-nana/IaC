@@ -108,7 +108,8 @@
                         "Packages" : {
                             "yum" : {
                                 "htop" : [
-                                ]
+                                ],
+								"iputils":[]
                             }
                         },
                         "files"    : {
@@ -158,17 +159,18 @@
                                 "#!/bin/bash -x\n",
                                 "# Install the files and packages from the metadata\n",
                                 "INSTANCE_ID=`curl http://169.254.169.254/2014-11-05/meta-data/instance-id -s`\n",
-								"HOST_NAME=master",
-								"hostname master\n",
-								"echo '127.0.0.0.1 master' >> /etc/hosts\n",
-                                "echo \"PS1='\\u@master \\w]$'\" > /etc/profile.d/bootstrap_env.sh\n",
+								"HOST_NAME=master\n",
+								"hostname $HOST_NAME\n",
+								"sed '/HOSTNAME/d' /etc/sysconfig/network > /tmp/network && mv /tmp/network /etc/sysconfig/network && echo 'HOSTNAME=\n",
+								"echo '127.0.0.0.1 $HOST_NAME' >> /etc/hosts\n",
+                                "echo \"PS1='\\u@$HOST_NAME \\w]$'\" > /etc/profile.d/bootstrap_env.sh\n",
                                 "echo \"INSTANCE_ID=$INSTANCE_ID\" >> /etc/profile.d/bootstrap_env.sh\n",
                                 "yum update -y \n",
                                 "yum install -y curl\n",
 								"aws ec2 create-tags --resources $INSTANCE_ID --tags Key=\"Name\",Value=\"master\" --region=ap-southeast-2\n",
                                 "curl -L https://bootstrap.saltstack.com -o install-salt.sh\n ",
                                 "sh install-salt.sh -M -A 127.0.0.01\n -i master \n",
-								"salt-key -y -a  master\n",
+								"salt-key -y -a $HOST_NAME\n",
                                 "/opt/aws/bin/cfn-init -v ",
                                 "         --stack ",
                                 {
