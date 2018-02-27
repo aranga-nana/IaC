@@ -1,0 +1,76 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+    "Description"              : "AWS CloudFormation",
+    "Parameters"               : {
+    },
+    "Resources"                : {
+        "aSubnetGroup" : {
+            "Type" : "AWS::RDS::DBSubnetGroup",
+            "Properties" : {
+                "DBSubnetGroupDescription" : "bauuat-subnet",
+                "SubnetIds"                : [
+                    "subnet-2d2bc675",
+                    "subnet-c17a1fa6"
+                ]
+            }
+        },
+        "RDSCluster"   : {
+            "Type" : "AWS::RDS::DBCluster",
+            "Properties" : {
+                "MasterUsername" : "linearam",
+                "MasterUserPassword" : "linearam",
+                "Engine"             : "aurora",
+                "DBSubnetGroupName"  : {
+                    "Ref" : "aSubnetGroup"
+                },
+                "DatabaseName" : "linearbpms",
+                "DBClusterParameterGroupName" : {
+                    "Ref" : "RDSDBClusterParameterGroup"
+                }
+            }
+        },
+        "RDSDBInstance" : {
+            "Type" : "AWS::RDS::DBInstance",
+            "Properties" : {
+                "DBSubnetGroupName" : {
+                    "Ref" : "aSubnetGroup"
+                },
+                "DBParameterGroupName" : {
+                    "Ref" : "RDSDBParameterGroup"
+                },
+                "Engine"               : "aurora",
+                "DBClusterIdentifier"  : {
+                    "Ref" : "RDSCluster"
+                },
+                "DBInstanceIdentifier" : "bauuat-aurora",
+                "PubliclyAccessible"   : "true",
+                "MultiAZ"              : false,
+                "DBInstanceClass"      : "db.t2.small"
+
+              
+            }
+        },
+        "RDSDBClusterParameterGroup" : {
+            "Type" : "AWS::RDS::DBClusterParameterGroup",
+            "Properties" : {
+                "Description" : "CloudFormation Sample Aurora Cluster Parameter Group",
+                "Family"      : "aurora5.6",
+                "Parameters"  : {
+                    "time_zone" : "Australia/Sydney"
+                }
+            }
+        },
+        "RDSDBParameterGroup"        : {
+            "Type" : "AWS::RDS::DBParameterGroup",
+            "Properties" : {
+                "Description" : "CloudFormation Sample Aurora Parameter Group",
+                "Family"      : "aurora5.6",
+                "Parameters"  : {
+                    "sql_mode" : "IGNORE_SPACE"
+                }
+            }
+        }
+    },
+    "Outputs"                  : {
+    }
+}
