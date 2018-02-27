@@ -46,6 +46,7 @@
                 "PubliclyAccessible"   : "true",
                 "MultiAZ"              : false,
                 "DBInstanceClass"      : "db.t2.small"
+                
 
               
             }
