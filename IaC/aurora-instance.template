@@ -2,6 +2,11 @@
     "AWSTemplateFormatVersion" : "2010-09-09",
     "Description"              : "AWS CloudFormation",
     "Parameters"               : {
+    "DBSnapshotURN" : {
+        "Type" : "String",
+        "Default" : "arn:aws:rds:ap-southeast-2:363762816039:cluster-snapshot:auto-bauuat-db-08-00-19-00"
+			
+	    }
     },
     "Resources"                : {
         "aSubnetGroup" : {
@@ -17,16 +22,15 @@
         "RDSCluster"   : {
             "Type" : "AWS::RDS::DBCluster",
             "Properties" : {
-                "MasterUsername" : "linearam",
-                "MasterUserPassword" : "linearam",
-                "Engine"             : "aurora",
-                "DBSubnetGroupName"  : {
+                "Engine" : "aurora",
+                "DBSubnetGroupName" : {
                     "Ref" : "aSubnetGroup"
                 },
-                "DatabaseName" : "linearbpms",
+                "DatabaseName"      : "linearbpms",
                 "DBClusterParameterGroupName" : {
                     "Ref" : "RDSDBClusterParameterGroup"
-                }
+                },
+                "SnapshotIdentifier"          : "arn:aws:rds:ap-southeast-2:363762816039:cluster-snapshot:auto-bauuat-db-08-00-19-00"
             }
         },
         "RDSDBInstance" : {
@@ -46,9 +50,6 @@
                 "PubliclyAccessible"   : "true",
                 "MultiAZ"              : false,
                 "DBInstanceClass"      : "db.t2.small"
-                
-
-              
             }
         },
         "RDSDBClusterParameterGroup" : {
