@@ -15,16 +15,6 @@
 		}
     },
     "Resources"                : {
-        "aSubnetGroup" : {
-            "Type" : "AWS::RDS::DBSubnetGroup",
-            "Properties" : {
-                "DBSubnetGroupDescription" : "bauuat-subnet",
-                "SubnetIds"                : [
-                    "subnet-2d2bc675",
-                    "subnet-c17a1fa6"
-                ]
-            }
-        },
         "RDSCluster"   : {
             "Type" : "AWS::RDS::DBCluster",
             "Properties" : {
@@ -81,5 +71,11 @@
         }
     },
     "Outputs"                  : {
+		"RwEndpoint" : {
+		    "Value" : {"Fn::GetAtt" : [ "RDSCluster", "Endpoint.Address"]}
+		},
+        "ReadEndpoint" : {
+            "Value" : {"Fn::GetAtt" : [ "RDSCluster", "ReadEndpoint.Address"]}
+        }
     }
 }
