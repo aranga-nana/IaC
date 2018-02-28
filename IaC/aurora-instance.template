@@ -2,11 +2,17 @@
     "AWSTemplateFormatVersion" : "2010-09-09",
     "Description"              : "AWS CloudFormation",
     "Parameters"               : {
-    "DBSnapshotURN" : {
-        "Type" : "String",
-        "Default" : "arn:aws:rds:ap-southeast-2:363762816039:cluster-snapshot:auto-bauuat-db-08-00-19-00"
-			
-	    }
+        "DBSnapshotURN" : {
+            "Type" : "String",
+            "Default" : "arn:aws:rds:ap-southeast-2:363762816039:cluster-snapshot:auto-bauuat-db-08-00-19-00"
+        },
+        "DBSecurityGroups" : {
+            "Type" : "List<AWS::EC2::SecurityGroup::Id>"
+        },
+		"DBSubnetGroupName":{
+        "Type" : "String"
+		 
+		}
     },
     "Resources"                : {
         "aSubnetGroup" : {
@@ -24,12 +30,13 @@
             "Properties" : {
                 "Engine" : "aurora",
                 "DBSubnetGroupName" : {
-                    "Ref" : "aSubnetGroup"
+                    "Ref" : "DBSubnetGroup"
                 },
                 "DatabaseName"      : "linearbpms",
                 "DBClusterParameterGroupName" : {
                     "Ref" : "RDSDBClusterParameterGroup"
                 },
+                "VpcSecurityGroupIds" : { "Ref" : "DBSecurityGroups" },
                 "SnapshotIdentifier"          : "arn:aws:rds:ap-southeast-2:363762816039:cluster-snapshot:auto-bauuat-db-08-00-19-00"
             }
         },
