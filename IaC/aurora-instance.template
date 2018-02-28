@@ -30,7 +30,7 @@
             "Properties" : {
                 "Engine" : "aurora",
                 "DBSubnetGroupName" : {
-                    "Ref" : "DBSubnetGroup"
+                    "Ref" : "DBSubnetGroupName"
                 },
                 "DatabaseName"      : "linearbpms",
                 "DBClusterParameterGroupName" : {
